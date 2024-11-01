@@ -1,0 +1,349 @@
+{
+    "meta": {
+      "instanceId": "fc9abf5871fcab724177436b78d7692ea12e613113e02c8d5b06fda894e043d5"
+    },
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "0b8109f2-f0a5-4ab6-a5cb-7e4720c2d159",
+        "name": "When clicking ‘Test workflow’",
+        "type": "n8n-nodes-base.manualTrigger",
+        "position": [
+          80,
+          180
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "resource": "fileFolder",
+          "limit": 100,
+          "filter": {
+            "folderId": {
+              "__rl": true,
+              "value": "={{ $json.id }}",
+              "mode": "id"
+            }
+          },
+          "options": {
+            "fields": [
+              "*"
+            ]
+          }
+        },
+        "id": "402242ad-6236-45b4-97c4-43eddf54c7e7",
+        "name": "Get Initial Folders",
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          580,
+          120
+        ],
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "tsyBw6dwJ1sUrRX2",
+            "name": "Google Drive account Gorilla Account "
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "=http://localhost:3001/drive-scanner/{{ $json.id }}",
+          "options": {}
+        },
+        "id": "54111534-7731-4113-9ae6-538f4022df06",
+        "name": "Check if already registered",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          780,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "6aea995f-354d-4f3c-bf17-2c0dc751d193",
+                "name": "id",
+                "value": "0AA_Y13wkK4EHUk9PVA",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "4967e433-fc5f-4a50-8e6c-59da686f4129",
+        "name": "initial folder id",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          260,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://localhost:3001/drive-scanner",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n\"mimeType\": \"{{ $json.mimeType }}\",\n\"id\": \"{{ $json.id }}\",\n\"name\": \"{{ $json.name }}\",\n\"webViewLink\": \"{{ $json.webViewLink }}\"\n}",
+          "options": {}
+        },
+        "id": "cbccde3c-0d31-4868-b024-6cd26531aba1",
+        "name": "Register items",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1440,
+          -140
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "0a6fae62-d1df-4c5d-ac6d-51830826b06d",
+                "name": "id",
+                "value": "={{ $json.shortcutDetails.targetId }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "1d994452-9a23-4225-a88f-cec99d2305e6",
+        "name": "Map taget Id",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1360,
+          420
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "a7fdcc5e-6d07-4138-a4a9-ca84c344aeab",
+                "leftValue": "={{ $json.id }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "6b5b6e61-1779-4802-ab55-ece5d58a4f4b",
+        "name": "If",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1140,
+          -60
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.mimeType }}",
+                      "rightValue": "shortcut",
+                      "operator": {
+                        "type": "string",
+                        "operation": "contains"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Shorcut"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "c2f5e686-bcc6-478f-bca0-da0c681c454c",
+                      "leftValue": "={{ $json.mimeType }}",
+                      "rightValue": "folder",
+                      "operator": {
+                        "type": "string",
+                        "operation": "contains"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Folder"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "ba5237f5-1f03-453a-9372-10c4a3c9a02e",
+        "name": "Switch",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          1080,
+          340
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "combineBySql",
+          "query": "SELECT *\nFROM input1\nLEFT JOIN input2 \n  ON input1.id = input2.id \nWHERE input2.itemOnStorage = false;"
+        },
+        "id": "7780ba58-29e3-4cb7-9a01-22f00d7160fd",
+        "name": "Filter not registered items",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          940,
+          60
+        ]
+      }
+    ],
+    "connections": {
+      "When clicking ‘Test workflow’": {
+        "main": [
+          [
+            {
+              "node": "initial folder id",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Initial Folders": {
+        "main": [
+          [
+            {
+              "node": "Check if already registered",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Filter not registered items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check if already registered": {
+        "main": [
+          [
+            {
+              "node": "Filter not registered items",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "initial folder id": {
+        "main": [
+          [
+            {
+              "node": "Get Initial Folders",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Map taget Id": {
+        "main": [
+          [
+            {
+              "node": "Get Initial Folders",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Register items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "Map taget Id",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get Initial Folders",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter not registered items": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {}
+  }

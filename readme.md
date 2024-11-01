@@ -1,52 +1,100 @@
-# n8n-pinecone-pwrc
+# Drive Scanner and Site Scraper
 
-## Description
-This project is a web scraper built using TypeScript, Express, and Playwright. It allows users to scrape content from a specified Google site after logging in with Google credentials. The scraped data includes the main content, links, images, and metadata from the site.
+The idea of this repository is to provide some useful tools for interacting with the content of PWRC. Some of these have been used during the creation of the bot agent available in the backend of the AI service.
 
-## Features
-- Scrapes content from a specified Google site.
-- Logs in using Google credentials stored in environment variables.
-- Extracts main content, links, images, and metadata.
-- Saves the scraped data in a JSON file.
-- Provides an API endpoint to trigger the scraping process.
+The information from PWRC is mainly found in two sources:
 
-## Installation
+- PWRC Google Site
+- PWRC Google Drive
 
-1. Clone the repository:
+The intention is to create some tools that allow access to these two sources with the goal of transforming the data into the necessary format to include it in the new site within PMS SPA. Therefore, we have created the following tools:
+
+## Site Scraper
+
+Using Playwright, we log in with Google with the intention of obtaining as much information as possible directly from the Google site for PWRC. This script extracts the information and stores it in a JSON file for later use.
+
+### Using it 
+
+- Set environment variables:
+
+  ```bash
+  PORT=3000
+  GOOGLE_EMAIL=your.email@example.com
+  GOOGLE_PASSWORD=your_password_here
+  SITE_URL=https://sites.google.com/purepm.co/pureway/pwrc?authuser=1&pli=1
+  ```
+
+- Run the server:
+
+  ```bash
+  npm run dev:scrapper
+  ```
+
+- Start the process:
+
+  ```bash
+  curl http://localhost:3000/scrape
+  ```
+
+- Check the results in the generated file: `site-data-[timestamp].json`
+
+
+## Drive Scanner
+
+Drive Scanner is an Express server that manages the registration of PWRC files in Google Drive. The scanning process is executed using n8n, an open-source tool that allows us to create workflows and automate actions. It receives an initial drive ID and from that, it searches for folders, shortcuts, and files, which are sent via HTTP to the server to be finally stored in a JSON file for later use.
+
+### Using it
+
+1. Start n8n:
    ```bash
-   git clone <repository-url>
-   cd n8n-pinecone-pwrc
+   npx n8n
    ```
 
-2. Install dependencies:
+2. Access n8n interface:
+   - Go to http://localhost:5678/
+   - Create an account 
+   - Create a new workflow
+
+3. Import workflow:
+   - Copy the content from `/workflows/drive-scanner.json`
+   - Create a new workflow in n8n interface
+   - Paste the copied content
+
+### Google Drive API Setup
+
+1. Go to Google Cloud Console (https://console.cloud.google.com)
+2. Create a new project or select an existing one
+3. Enable the Google Drive API:
+   - Navigate to "APIs & Services" > "Library"
+   - Search for "Google Drive API"
+   - Click "Enable"
+4. Create OAuth 2.0 credentials:
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth client ID"
+   - Select "Web application" type
+   - Add the n8n redirect URI from node settings
+5. Copy credentials:
+   - Client ID
+   - Client Secret
+6. Configure n8n:
+   - Open Google Drive node settings
+   - Enter Client ID and Client Secret
+   - Complete OAuth flow
+
+### Running the Scanner
+
+1. Start the server:
    ```bash
-   npm install
+   npm run dev:drive-scanner
    ```
 
-3. Create a `.env` file in the root directory and add your Google credentials:
-   ```plaintext
-   GOOGLE_EMAIL=your_email@gmail.com
-   GOOGLE_PASSWORD=your_password
-   SITE_URL=https://www.example.com
-   PORT=3000
-   ```
+2. Execute workflow:
+   - Open n8n interface
+   - Locate imported workflow
+   - Click "Execute Workflow"
 
-## Usage
+3. View results:
+   - Check `drive-scanner.json` file
+   - Contains complete Drive structure
 
-To start the development server, run:
-```bash
-npm run dev
-```
-
-To build the project, run:
-```bash
-npm run build
-```
-
-## Contributing
-
-If you would like to contribute to this project, please fork the repository and submit a pull request. Make sure to follow the coding standards and include tests for any new features.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**Note:** Delete `drive-scanner.json` before re-running to ensure complete scan. Existing file may cause incomplete results.
